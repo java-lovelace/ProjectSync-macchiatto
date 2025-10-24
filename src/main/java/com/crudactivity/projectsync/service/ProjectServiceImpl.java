@@ -47,7 +47,7 @@ public class ProjectServiceImpl implements ProjectService{
             throw new RuntimeException(); // ideally use a NotFoundException
         }
 
-        project.setId(id); //We ensure that you update the correct record
+        //We ensure that you update the correct record
         return projectRepository.save(project);
     }
 }

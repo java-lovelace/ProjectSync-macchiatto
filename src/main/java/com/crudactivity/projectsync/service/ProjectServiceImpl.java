@@ -35,9 +35,9 @@ public class ProjectServiceImpl implements ProjectService{
     }
 
     @Override
-    public Project update(Project project) {
-        Optional<Project> optionalUser = projectRepository.findById(project.getId());
-        if(optionalUser.isEmpty()){
+    public Project update(Long id, Project project) {
+        Optional<Project> optionalProject = projectRepository.findById(project.getId());
+        if(optionalProject.isEmpty()){
             throw new RuntimeException();
         }
         return projectRepository.save(project);

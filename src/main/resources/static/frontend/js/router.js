@@ -1,50 +1,64 @@
-// Router hash muy simple
-const routes = {
-    '#/projects': async () => (await import('./views/projects-list.js')).render(),
-    '#/projects/new': async () => (await import('./views/project-form.js')).renderNew(),
-    '#/projects/:id': async (id) => (await import('./views/project-detail.js')).render(id),
-    '#/projects/:id/edit': async (id) => (await import('./views/project-form.js')).renderEdit(id),
-    '#/users': async () => (await import('./views/users-crud.js')).render()
-};
+// /frontend/js/router.js
+import ProjectsList from './views/projects-list.js';
+import ProjectForm from './views/project-form.js';
+import ProjectDetail from './views/project-detail.js';
+import UsersCrud from './views/users-crud.js';
 
-// Match tipo “/projects/123/edit”
+const routes = [
+  { hash: '#/projects', view: ProjectsList },
+  { hash: '#/projects/new', view: ProjectForm },
+  { hash: '#/projects/:id/edit', view: ProjectForm },
+  { hash: '#/projects/:id', view: ProjectDetail },
+  { hash: '#/users', view: UsersCrud }
+];
+
+function parseHash(hash) {
+  // normalize
+  if (!hash || hash === '') return '#/projects';
+  return hash;
+}
+
 function matchRoute(hash) {
-    if (routes[hash]) return { fn: routes[hash] };
-
-    // dinámicas
-    const parts = hash.split('/');
-    if (parts.length === 3 && parts[1] === '#') return null;
-
-    // /#/projects/123
-    if (/^#\/projects\/\d+$/.test(hash)) {
-        const id = hash.split('/')[2];
-        return { fn: routes['#/projects/:id'], param: id };
+  const parts = hash.split('/').filter(Boolean); // e.g. ['projects', '123', 'edit']
+  for (const r of routes) {
+    const rparts = r.hash.split('/').filter(Boolean);
+    if (rparts.length !== parts.length) continue;
+    const params = {};
+    let ok = true;
+    for (let i = 0; i < rparts.length; i++) {
+      if (rparts[i].startsWith(':')) {
+        params[rparts[i].substring(1)] = parts[i];
+      } else if (rparts[i] !== parts[i]) { ok = false; break; }
     }
-    // /#/projects/123/edit
-    if (/^#\/projects\/\d+\/edit$/.test(hash)) {
-        const id = hash.split('/')[2];
-        return { fn: routes['#/projects/:id/edit'], param: id };
-    }
-    return null;
+    if (ok) return { view: r.view, params };
+  }
+  return null;
 }
 
-async function render() {
-    const app = document.getElementById('app');
-    const hash = location.hash || '#/projects';
-    const match = matchRoute(hash);
-    try {
-        if (match) {
-            const html = await match.fn(match.param);
-            app.innerHTML = html;
-        } else {
-            const html = await routes['#/projects']();
-            app.innerHTML = html;
-        }
-    } catch (e) {
-        console.error(e);
-        app.innerHTML = `<div class="text-red-600">Error rendering route</div>`;
-    }
+async function router() {
+  const raw = parseHash(location.hash);
+  const matched = matchRoute(raw.replace(/^#/, '#/'));
+  const app = document.getElementById('app');
+  if (!matched) {
+    // fallback: projects list
+    location.hash = '#/projects';
+    return;
+  }
+  // render view
+  app.innerHTML = '<div class="text-center py-12">Cargando...</div>';
+  try {
+    await matched.view.render(app, matched.params || {});
+  } catch (err) {
+    app.innerHTML = '<div class="text-red-500">Error cargando la vista</div>';
+    console.error(err);
+  }
 }
 
-window.addEventListener('hashchange', render);
-window.addEventListener('DOMContentLoaded', render);
+window.addEventListener('hashchange', router);
+window.addEventListener('load', () => {
+  // ensure default route
+  if (!location.hash) location.hash = '#/projects';
+  router();
+});
+
+export default router;

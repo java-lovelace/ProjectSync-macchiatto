@@ -74,6 +74,13 @@ public class ProjectServiceImpl implements ProjectService {
         return projectRepository.save(project);
     }
 
+    @Override
+    @Transactional(readOnly = true)
+    public Project getByCode(String code) {
+        return projectRepository.findProjectByCode(code)
+                .orElseThrow(() -> new NotFoundException("Project code " + code + " not found"));
+    }
+
     // -------------------- helpers --------------------
 
     private void attachRelations(Project p) {
@@ -88,4 +95,5 @@ public class ProjectServiceImpl implements ProjectService {
             p.setUser(u);
         }
     }
+
 }

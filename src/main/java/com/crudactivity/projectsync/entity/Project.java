@@ -12,6 +12,8 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.time.Year;
+import java.util.Random;
 
 @Data
 @Entity
@@ -29,6 +31,8 @@ public class Project {
     @Column(name = "description")
     private String description;
 
+    @Column( name = "code",nullable = false, unique = true)
+    private String code;
 
     //foreign keys ↓
     @ManyToOne(fetch = FetchType.EAGER)
@@ -68,4 +72,14 @@ public class Project {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     @Transient
     private Long userId;
+
+
+    @PrePersist
+    public void generateCode() {
+        if (this.code == null || this.code.isEmpty()) {
+            String year = String.valueOf(Year.now().getValue());
+            int randomDigits = new Random().nextInt(900) + 100; // genera 3 dígitos aleatorios
+            this.code = "PRJ-" + year + "-" + randomDigits; // example generator: PRJ-2025-342
+        }
+    }
 }

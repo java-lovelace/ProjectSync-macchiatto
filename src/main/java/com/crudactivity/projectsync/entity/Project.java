@@ -11,7 +11,6 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -54,11 +53,11 @@ public class Project {
 
     @NotNull(message = "Star date cannot be empty")
     @Column(name = "start_date")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime startDate;
 
     @Column(name = "end_date")
-    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm")
     private LocalDateTime endDate;
 
     //only represent how the data is got(Json)
